@@ -13,8 +13,8 @@ public interface IF_Ent<T> {
 	public abstract void copyRecord(IF_Ent<T> entS, String webuserID)
 			throws ENTException;
 
-	public abstract String createRecord(Map<String,Object> paramMap,
-			Connection con) throws ENTException, SQLException, IOException;
+	public abstract Long createRecord(Map<String,Object> paramMap,
+			Connection con) throws ENTException;
 
 	public abstract void deleteRecord(String webuserID, String comments)
 			throws ENTException;

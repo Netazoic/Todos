@@ -120,45 +120,13 @@ public class SQLUtil {
 		    return getConnection(userName,password,connURL,jdbcLogLevel);
 		  }
 
-	  public static String parseQueryFile(Map<String,Object> settings, String path) throws Exception{
-		String q = readFile(path);
-		return parseQuery(settings, q);
-	}
 
-	public static String parseQuery(Map<String,Object> settings, String q) throws Exception{
-
-		try {
-			String key, val,token;
-			Object valObj;
-			for(Map.Entry<String,Object> entry: settings.entrySet()){
-				key = entry.getKey();
-				valObj = entry.getValue();
-				val = valObj.toString();
-				token = "/$" + key + ";/";
-				q.replaceAll(token, val);
-			}
-		} catch (Exception ex) {
-			throw ex;
-		}
-		return q;
-	}
-
-	static String readFile(String path) throws IOException{
-		Charset charset = StandardCharsets.UTF_8;
-		return readFile(path,charset);
-	}
-
-	static String readFile(String path, Charset encoding) 
-			throws IOException 
-			{
-		byte[] encoded = Files.readAllBytes(Paths.get(path));
-		return encoding.decode(ByteBuffer.wrap(encoded)).toString();
-			}
-
-	public static String readLargeFile(File file) throws IOException{
-		return FileUtils.readFileToString(file);
-	}
-	
+	  public static Long getNextID(String idField, String table, Connection con) throws SQLException{
+		  String q = "SELECT max(" + idField + ")+1 as id FROM " + table;
+		  String id = SQLUtil.execSQL(q, "id", con);
+		  return Long.parseLong(id);	  
+	  }
+	  
 	public static void releaseConnection(Connection con) throws SQLException{
 		con.close();
 		con = null;

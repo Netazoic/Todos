@@ -2,8 +2,8 @@ package com.netazoic.todos;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,8 +15,7 @@ import javax.servlet.http.HttpSession;
 
 import com.netazoic.ent.NetRoute;
 import com.netazoic.ent.ServENT;
-
-import org.sqlite.JDBC;
+import com.netazoic.util.SQLUtil;
 
 /*
  * Standard back-end for the Todos system.
@@ -110,17 +109,26 @@ public class Todos extends ServENT{
 			}
 			switch(route){
 			case lsdo:
-				listDOs(request,response);
+				listDOs(request,response,con);
 				break;
 			default:
 				throw new Exception("Unexpected action");
 			}
 		}
 
-		public void listDOs(HttpServletRequest request, HttpServletResponse response) throws Exception{
+		public void listDOs(HttpServletRequest request, HttpServletResponse response,Connection con) throws Exception{
 			//Do Something here
 			try {
-				response.getWriter().write("Hello World");
+				String q = "SELECT * FROM do";
+				Statement myStat = con.createStatement();
+				ResultSet rs = SQLUtil.execSQL(q, myStat);
+				String row;
+				while(rs.next()){
+					row = rs.getString("doid");
+					row += ":";
+					row += rs.getString("dccode");
+					response.getWriter().println(row);
+				}
 			} catch (IOException e) {
 				throw new Exception(e);
 			}
@@ -145,7 +153,11 @@ public class Todos extends ServENT{
 		public void routeAction(HttpServletRequest request,
 				HttpServletResponse response, Connection con, HttpSession session)
 				throws IOException, Exception {
-			// TODO Auto-generated method stub	
+			DO dd = new DO(con);
+			Map<String,Object> paramMap = getRequestMap(request);
+			Long id = dd.createRecord(paramMap, con);
+			String msg = "Created new DO with id " + id;
+			response.getWriter().print(msg);
 		}	
 		
 	}

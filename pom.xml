@@ -9,8 +9,8 @@
   
   	<build>
 		<sourceDirectory>src</sourceDirectory>
-		<outputDirectory>WEB-INF/classes</outputDirectory>
-		<directory>WEB-INF/lib</directory>
+		<outputDirectory>src/main/webapp/WEB-INF/classes</outputDirectory>
+		<directory>src/main/webapp/WEB-INF/lib</directory>
 
 		<plugins>
 			<plugin>
@@ -35,14 +35,13 @@
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>9.2.7.v20150116</version>
 				<configuration>
-					<jettyXml>./conf/jetty-http.xml, conf/jetty-log.xml</jettyXml>
-					<descriptor>WEB-INF/web.xml</descriptor>
+					<jettyXml>conf/jetty-http.xml, conf/jetty-log.xml</jettyXml>
+					<descriptor>src/main/webapp/WEB-INF/web.xml</descriptor>
 					<httpConnector>
 						<port>80</port>
 						<host>todosd</host>
 						<name>todosDev</name>
 					</httpConnector>
-          			<overrideWebXml>WEB-INF/web.xml</overrideWebXml>
         		</configuration>
 			</plugin>
 		</plugins>

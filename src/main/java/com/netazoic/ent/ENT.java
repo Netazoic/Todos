@@ -22,19 +22,21 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netazoic.util.ParseUtil;
 import com.netazoic.util.SQLUtil;
 
 
 
 public abstract class ENT<T> implements IF_Ent<T>{
 
-	public Field nitIDField;
-	public String fld_nitID = null;
+	public Field fld_nitID;
+
 	public String sql_RetrieveENT;
 	public String sql_CreateEVT;
 
 	public String nitName = null;
 	public String nitID = null;
+	public String nitIDField = null;
 	public String nitCode = null;
 	public String nitTitle = null;
 	public String nitDesc = null;
@@ -42,18 +44,28 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	public String nitTypeCode = null;
 
 	public String nitTable = null;
+	
+	@JsonIgnore
+	public ParseUtil parseUtil = new ParseUtil();
 
 	@JsonIgnore 
 	public Connection con;
 
+	public void init(){
+		initENT();
+	}
 	public void init(Connection con){
 		this.con = con;
+		init();
 	}
 
 	public void init(String id, Connection con){
 		this.con = con;
-
+		init();
 	}
+	
+	public abstract void initENT();
+	
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#copyRecord(com.netazoic.ent.IF_Ent, java.lang.String)
 	 */
@@ -65,7 +77,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#createRecord(javax.servlet.http.HttpServletRequest, java.sql.Connection)
 	 */
-	public abstract String createRecord(Map<String,Object> paramMap,	Connection con) throws ENTException, SQLException, IOException;
+	public abstract Long createRecord(Map<String,Object> paramMap,	Connection con) throws ENTException;
 
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#deleteRecord(java.lang.String, java.lang.String)
@@ -153,13 +165,13 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		Statement stat = null;
 		try{
 			Object nitIDObj;
-			if(nitIDField == null) 	nitIDField = this.getClass().getField(fld_nitID);
-			nitIDObj = nitIDField.get(this);
+			if(fld_nitID == null) 	fld_nitID = this.getClass().getField(nitIDField);
+			nitIDObj = fld_nitID.get(this);
 			if(nitIDObj == null) throw new Exception("Must first set record ID value.");
 			String fPath = sql_RetrieveENT;
 			Map<String, Object> settings = new HashMap<String, Object>();
-			settings.put(nitIDField.getName(), nitIDObj);
-			String sql = SQLUtil.parseQueryFile(settings, fPath);
+			settings.put(fld_nitID.getName(), nitIDObj);
+			String sql = parseUtil.parseQueryFile(settings, fPath);
 			stat = con.createStatement();
 			ResultSet rs = SQLUtil.execSQL(sql,stat);
 			nitID = nitIDObj.toString();
@@ -181,7 +193,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		String idTemp = null;
 
 		try {
-			idTemp = (String)paramMap.get(nitIDField.getName());
+			idTemp = (String)paramMap.get(fld_nitID.getName());
 			if(idTemp == null) throw new ENTException("Could not determine record ID");
 			setIDFieldVal(idTemp);
 			retrieveRecord();
@@ -205,7 +217,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		//Field[] flds = this.getClass().getDeclaredFields();
 		Object val;
 		String fld;
-		Class type;
+
 		rs.next();
 		int idx = 0;
 		ResultSetMetaData rsmd = rs.getMetaData();
@@ -219,31 +231,8 @@ public abstract class ENT<T> implements IF_Ent<T>{
 				if(!colMap.containsKey(fld.toLowerCase()))continue;
 				val = rs.getObject(fld);
 				//if(val==null) continue;
-				type = f.getType();
-				if( type.isInstance(val)){
-					//nada, type is the same between rs and object. No conversion necessary.
-				}
-				else if((type.equals(Integer.class) || (type.equals(int.class))) && ( val instanceof java.math.BigDecimal)){
-					BigDecimal mybd = (BigDecimal)val;
-					val = mybd.intValueExact();					
-				}
-				else if(type.equals(String.class) && val instanceof java.math.BigDecimal){
-					//need to convert to a String
-					val = val.toString();
-				}
-				else if(type.equals(java.sql.Date.class) && val instanceof java.sql.Timestamp){
-					Timestamp ts = (Timestamp)val;
-					val = new java.sql.Date(ts.getTime());
-				}
-				else if(type.equals(java.util.Date.class) && val instanceof java.sql.Timestamp){
-					Timestamp ts = (Timestamp)val;
-					val = new java.util.Date(ts.getTime());
-				}
-				else if (type.equals(String.class) && val instanceof java.sql.Date){
-					//need to convert Date to a String
-					val = val.toString();
-				}
-				f.set(this, val);
+
+				val = setFieldVal(f, val);
 			}catch(Exception ex){
 				@SuppressWarnings("unused")
 				String msg = ex.getMessage();
@@ -252,12 +241,70 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		}
 	}
 
+	private Object setFieldVal(Field f, Object val)
+			throws IllegalAccessException {
+		Class type = f.getType();
+		if( type.isInstance(val)){
+			//nada, type is the same between rs and object. No conversion necessary.
+		}
+		else if((type.equals(Integer.class) || (type.equals(int.class))) && ( val instanceof java.math.BigDecimal)){
+			BigDecimal mybd = (BigDecimal)val;
+			val = mybd.intValueExact();					
+		}
+		else if(type.equals(String.class) && val instanceof java.math.BigDecimal){
+			//need to convert to a String
+			val = val.toString();
+		}
+		else if(type.equals(java.sql.Date.class) && val instanceof java.sql.Timestamp){
+			Timestamp ts = (Timestamp)val;
+			val = new java.sql.Date(ts.getTime());
+		}
+		else if(type.equals(java.util.Date.class) && val instanceof java.sql.Timestamp){
+			Timestamp ts = (Timestamp)val;
+			val = new java.util.Date(ts.getTime());
+		}
+		else if (type.equals(String.class) && val instanceof java.sql.Date){
+			//need to convert Date to a String
+			val = val.toString();
+		}
+		f.set(this, val);
+		return val;
+	}
+	
+	public void setFieldVals(Map<String,Object> paramMap) throws SQLException{
+		//load object fields from similarly named db fields
+		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
+		//Field[] flds = this.getClass().getDeclaredFields();
+		Object val;
+		String fld, key;
+		Set<String> keys = paramMap.keySet();
+		Map<String,Object> lowerKeys = new HashMap<String,Object>();
+		for(String k : keys){
+			lowerKeys.put(k.toLowerCase(), paramMap.get(k));
+		}
+
+		for(Field f : flds){
+			try{
+				fld = f.getName().toLowerCase();
+				if(!lowerKeys.containsKey(fld))continue;
+				val = lowerKeys.get(fld);
+				//if(val==null) continue;
+				val = setFieldVal(f, val);
+			}catch(Exception ex){
+				@SuppressWarnings("unused")
+				String msg = ex.getMessage();
+				continue;
+			}
+		}
+	}
+
+
 	public void setIDFieldVal(String id) throws ENTException{
 		try {
-			if(nitIDField == null) nitIDField = this.getClass().getField(fld_nitID);
-			if(nitIDField == null) throw new ENTException("Could not determine ID field");
+			if(fld_nitID == null) fld_nitID = this.getClass().getField(nitIDField);
+			if(fld_nitID == null) throw new ENTException("Could not determine ID field");
 
-			nitIDField.set(this, id);
+			fld_nitID.set(this, id);
 		} catch (IllegalArgumentException e) {
 			throw new ENTException(e);
 		} catch (IllegalAccessException e) {
@@ -289,7 +336,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		//Only update the fields that are actually present in the form input
 		//Works with multi-page forms
 		try{
-			assert(nitTable != null && fld_nitID != null && nitID != null);
+			assert(nitTable != null && nitIDField != null && nitID != null);
 		}catch(Exception ex){
 			throw new ENTException("nit variables not set for this object.  Cannot update record.");
 		}
@@ -297,7 +344,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		Map<String,Field> fldMap = new HashMap();
 		List<Field> flds= getFields(new LinkedList<Field>(),this.getClass(),flgInherit, flgPublic);
 		for(Field f : flds){
-			if(f.getName().equals(fld_nitID)) continue;
+			if(f.getName().equals(nitIDField)) continue;
 			fldMap.put(f.getName(), f);
 		}
 
@@ -336,7 +383,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			return;
 		}
 		q = q.substring(0,q.lastIndexOf(",")) + "\n";
-		q += " WHERE " + this.fld_nitID +"='" + nitID + "'";
+		q += " WHERE " + this.nitIDField +"='" + nitID + "'";
 
 		SQLUtil.execSQL(q,con);
 
