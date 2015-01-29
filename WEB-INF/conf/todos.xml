@@ -1,0 +1,13 @@
+	<servlet>
+		<servlet-name>Todos</servlet-name>
+		<servlet-class>com.netazoic.todos.Todos</servlet-class>
+		<load-on-startup>0</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Todos</servlet-name>
+		<url-pattern>/todos</url-pattern>
+	</servlet-mapping>
+		<servlet-mapping>
+		<servlet-name>Todos</servlet-name>
+		<url-pattern>/td/*</url-pattern>
+	</servlet-mapping>

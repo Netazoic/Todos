@@ -1,0 +1,19 @@
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd"
+[ 
+   <!ENTITY todos SYSTEM "./conf/todos.xml">
+]
+>
+<web-app>
+        &todos;
+
+	<context-param>
+		<param-name>AppName</param-name>
+		<param-value>Todos Dev</param-value>
+	</context-param>
+	
+	<context-param>
+		<param-name>sqliteDB</param-name>
+		<param-value>E:/git_working/Todos/content/data/todos-dev.db</param-value>
+	</context-param>
+
+</web-app>
