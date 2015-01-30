@@ -3,4 +3,4 @@
 INSERT INTO do
 (doid,dccode,dorecid,dorecuuid)
 VALUES(
-{{doID}},{{dcCode}},{{doRecID}},{{doRecUUID}});
+{{doID}},'{{dcCode}}',{{doRecID}},'{{doRecUUID}}');

@@ -24,6 +24,10 @@ public class SQLUtil {
 	public enum SQL_Param{
 		UserName, DatabaseServer, Password, jdbcLogLevel
 	}
+	
+	public static void closeStatement(Statement myStat) {
+		if(myStat!=null)try{myStat.close();myStat = null;}catch(Exception ex){}
+	}
 
 	public static int execSQL(String q, Connection con) throws SQLException{
 		Statement myStat = null;

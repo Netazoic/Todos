@@ -26,7 +26,7 @@ public interface IF_Ent<T> {
 	public abstract void retrieveRecord(Map<String,Object> paramMap)
 			throws ENTException;
 
-	public abstract void setFieldVals(ResultSet rs) throws SQLException;
+	public abstract void setFieldVals(ResultSet rs) throws SQLException, ENTException;
 
 	public abstract void updateRecord(Map<String,Object> paramMap)
 			throws ENTException;

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -35,7 +36,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	public String sql_CreateEVT;
 
 	public String nitName = null;
-	public String nitID = null;
+	public Integer nitID = null;
 	public String nitIDField = null;
 	public String nitCode = null;
 	public String nitTitle = null;
@@ -45,6 +46,11 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 	public String nitTable = null;
 	
+	//Tree elements
+	public Integer parentID;
+	public Integer lft;
+	public Integer rgt;
+
 	@JsonIgnore
 	public ParseUtil parseUtil = new ParseUtil();
 
@@ -59,13 +65,39 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		init();
 	}
 
-	public void init(String id, Connection con){
+	public void init(String id, Connection con) throws ENTException{
 		this.con = con;
 		init();
+		setIDFieldVal(id);
+		retrieveRecord();
+	}
+	public void init(Long id,Connection con) throws ENTException{
+		this.con = con;
+		init();
+		setIDFieldVal(id);
+		retrieveRecord();
+	}
+
+	public abstract void initENT();
+
+	public ENT(){}
+	public ENT(Connection con){
+		init(con);
+	}
+	public ENT(Long id,Connection con) throws ENTException{
+		init(id,con);
 	}
 	
-	public abstract void initENT();
-	
+	public  ENT(int id, int pr, Integer l, Integer r){
+		    nitID = id;
+		    parentID = pr;
+		    lft = l;
+		    rgt = r;
+		  }
+
+	public ENT clone(){
+		return this.clone();
+	}
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#copyRecord(com.netazoic.ent.IF_Ent, java.lang.String)
 	 */
@@ -82,11 +114,8 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#deleteRecord(java.lang.String, java.lang.String)
 	 */
-	public void deleteRecord(String webuserID, String comments)
-			throws ENTException {
-		// TODO Auto-generated method stub
-
-	}
+	public abstract void deleteRecord(String webuserID, String comments)
+			throws ENTException;
 
 	public static List<Field> getAllFields(List<Field> fields, Class<?> type) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
@@ -163,6 +192,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	 */
 	public void retrieveRecord() throws ENTException {
 		Statement stat = null;
+		String sql = null;
 		try{
 			Object nitIDObj;
 			if(fld_nitID == null) 	fld_nitID = this.getClass().getField(nitIDField);
@@ -171,10 +201,13 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			String fPath = sql_RetrieveENT;
 			Map<String, Object> settings = new HashMap<String, Object>();
 			settings.put(fld_nitID.getName(), nitIDObj);
-			String sql = parseUtil.parseQueryFile(settings, fPath);
+			if(fPath == null){
+				sql = "SELECT * FROM " + this.nitTable + " WHERE " + fld_nitID.getName() + " = '" + nitIDObj + "'";
+			}
+			else sql = ParseUtil.parseQuery(fPath, settings);
 			stat = con.createStatement();
 			ResultSet rs = SQLUtil.execSQL(sql,stat);
-			nitID = nitIDObj.toString();
+			nitID = (Integer)nitIDObj;
 			setFieldVals(rs);
 			//twiddleWebuserIterator();
 		}catch(Exception ex){
@@ -203,10 +236,37 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	}
 
 
+	public void setFieldVals(Map<String,Object> paramMap) throws SQLException, ENTException{
+		//load object fields from similarly named db fields
+		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
+		//Field[] flds = this.getClass().getDeclaredFields();
+		Object val;
+		String fld;
+		Set<String> keys = paramMap.keySet();
+		Map<String,Object> lowerKeys = new HashMap<String,Object>();
+		for(String k : keys){
+			lowerKeys.put(k.toLowerCase(), paramMap.get(k));
+		}
+
+		for(Field f : flds){
+			try{
+				fld = f.getName().toLowerCase();
+				if(!lowerKeys.containsKey(fld))continue;
+				val = lowerKeys.get(fld);
+				//if(val==null) continue;
+				val = setFieldVal(f, val);
+			}catch(Exception ex){
+				@SuppressWarnings("unused")
+				String msg = ex.getMessage();
+				throw new ENTException(msg);
+				//continue;
+			}
+		}
+	}
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#setFieldVals(java.sql.ResultSet)
 	 */
-	public void setFieldVals(ResultSet rs) throws SQLException{
+	public void setFieldVals(ResultSet rs) throws SQLException, ENTException{
 		//load object fields from similarly named db fields
 		/*
 		 * At this level, the setFieldVals function can only set values on Public fields in the 
@@ -219,7 +279,6 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		String fld;
 
 		rs.next();
-		int idx = 0;
 		ResultSetMetaData rsmd = rs.getMetaData();
 		Map<String,Integer> colMap = new HashMap<String,Integer>();
 		for (int i = 1; i < rsmd.getColumnCount()+1; i++){
@@ -236,14 +295,21 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			}catch(Exception ex){
 				@SuppressWarnings("unused")
 				String msg = ex.getMessage();
-				continue;
+				throw new ENTException(msg);
 			}
 		}
 	}
 
+
+
 	private Object setFieldVal(Field f, Object val)
-			throws IllegalAccessException {
-		Class type = f.getType();
+			throws IllegalAccessException, ENTException {
+		Class<?> type = f.getType();
+		try{
+			val = type.getClass().cast(val);
+		}catch(Exception ex){
+			//casting didn't work
+		}
 		if( type.isInstance(val)){
 			//nada, type is the same between rs and object. No conversion necessary.
 		}
@@ -267,37 +333,23 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			//need to convert Date to a String
 			val = val.toString();
 		}
-		f.set(this, val);
-		return val;
-	}
-	
-	public void setFieldVals(Map<String,Object> paramMap) throws SQLException{
-		//load object fields from similarly named db fields
-		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
-		//Field[] flds = this.getClass().getDeclaredFields();
-		Object val;
-		String fld, key;
-		Set<String> keys = paramMap.keySet();
-		Map<String,Object> lowerKeys = new HashMap<String,Object>();
-		for(String k : keys){
-			lowerKeys.put(k.toLowerCase(), paramMap.get(k));
+		else if(type.equals(Long.class) && val instanceof java.lang.Integer){
+			val = Long.valueOf((int)val);
 		}
-
-		for(Field f : flds){
+		else if(type.equals(java.util.UUID.class) && val instanceof java.lang.String){
 			try{
-				fld = f.getName().toLowerCase();
-				if(!lowerKeys.containsKey(fld))continue;
-				val = lowerKeys.get(fld);
-				//if(val==null) continue;
-				val = setFieldVal(f, val);
+				val  = UUID.fromString((String)val);
 			}catch(Exception ex){
-				@SuppressWarnings("unused")
-				String msg = ex.getMessage();
-				continue;
+				val = UUID.randomUUID();
 			}
 		}
+		try{
+			f.set(this, val);
+		}catch(Exception ex){
+			throw new ENTException(ex);
+		}
+		return val;
 	}
-
 
 	public void setIDFieldVal(String id) throws ENTException{
 		try {
@@ -315,6 +367,15 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			throw new ENTException(e);
 		}
 
+	}
+	private void setIDFieldVal(Long id) throws ENTException{
+		try{
+			if(fld_nitID == null) fld_nitID = this.getClass().getField(nitIDField);
+			if(fld_nitID == null) throw new ENTException("Could not determine ID field");
+			fld_nitID.set(this, id);
+		}catch(Exception ex){
+			throw new ENTException(ex);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -341,7 +402,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			throw new ENTException("nit variables not set for this object.  Cannot update record.");
 		}
 		Set<Entry<String,Object>> params = paramMap.entrySet();
-		Map<String,Field> fldMap = new HashMap();
+		Map<String,Field> fldMap = new HashMap<String, Field>();
 		List<Field> flds= getFields(new LinkedList<Field>(),this.getClass(),flgInherit, flgPublic);
 		for(Field f : flds){
 			if(f.getName().equals(nitIDField)) continue;
@@ -350,7 +411,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 		String fld;
 		Object val;
-		Class fType;
+		Class<?> fType;
 		Field f;
 		Date d = new Date();
 		Timestamp ts = new Timestamp(12345);
@@ -387,6 +448,11 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 		SQLUtil.execSQL(q,con);
 
+	}
+	protected void loadParamMap(Map<String, Object> paramMap) throws IllegalAccessException {
+		for (Field f : this.getClass().getDeclaredFields()){
+			paramMap.put(f.getName(), f.get(this));
+		}
 	}
 
 }

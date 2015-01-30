@@ -1,11 +1,11 @@
 <!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd"
 [ 
    <!ENTITY todos8 SYSTEM "./conf/todos.xml">
-   <!ENTITY todos9 SYSTEM "src/main/webapp/WEB-INF/conf/todos.xml">
+   <!ENTITY todos9 SYSTEM "./src/main/webapp/WEB-INF/conf/todos.xml">
 ]
 >
 <web-app>
-        &todos8;
+        &todos9;
 
 	<context-param>
 		<param-name>AppName</param-name>
@@ -14,7 +14,7 @@
 	
 	<context-param>
 		<param-name>sqliteDB</param-name>
-		<param-value>E:/git_working/Todos/content/data/todos2-dev.db</param-value>
+		<param-value>E:/git_working/Todos/content/data/netazoic-dev.db</param-value>
 	</context-param>
  
 </web-app>

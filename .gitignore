@@ -6,3 +6,5 @@ src/main/webapp/WEB-INF/classes
 .#webclasspath
 .tomcatplugin
 bak
+logs
+content/data/_archive/
