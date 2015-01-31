@@ -44,7 +44,7 @@
 <booleanAttribute key="net.sourceforge.eclipsejetty.launcher.scope.test.exclude" value="true"/>
 <intAttribute key="net.sourceforge.eclipsejetty.launcher.threadPool.limit.count" value="16"/>
 <booleanAttribute key="net.sourceforge.eclipsejetty.launcher.threadPool.limit.enabled" value="false"/>
-<stringAttribute key="net.sourceforge.eclipsejetty.launcher.webappdir" value="/src/main/webapp"/>
+<stringAttribute key="net.sourceforge.eclipsejetty.launcher.webappdir" value="/webapp"/>
 <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>

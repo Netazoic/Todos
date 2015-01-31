@@ -8,3 +8,4 @@ src/main/webapp/WEB-INF/classes
 bak
 logs
 content/data/_archive/
+.classpath
