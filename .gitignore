@@ -9,3 +9,6 @@ bak
 logs
 content/data/_archive/
 .classpath
+src/main/webapp/WEB-INF/lib/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+src/main/webapp/WEB-INF/lib/maven-status/
+src/main/webapp/WEB-INF/lib/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
