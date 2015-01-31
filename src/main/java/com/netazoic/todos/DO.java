@@ -16,6 +16,8 @@ public class DO extends ENT<DO> {
 	public Long doRecID;
 	public UUID doRecUUID;
 	public Long doParentID;
+	
+	public Integer lft,rgt;
 
 	public enum DO_Class{
 		PARENT,CHILD,SELF

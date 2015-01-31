@@ -36,7 +36,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	public String sql_CreateEVT;
 
 	public String nitName = null;
-	public Integer nitID = null;
+	public Long nitID = null;
 	public String nitIDField = null;
 	public String nitCode = null;
 	public String nitTitle = null;
@@ -46,10 +46,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 	public String nitTable = null;
 	
-	//Tree elements
-	public Integer parentID;
-	public Integer lft;
-	public Integer rgt;
+
 
 	@JsonIgnore
 	public ParseUtil parseUtil = new ParseUtil();
@@ -88,14 +85,9 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		init(id,con);
 	}
 	
-	public  ENT(int id, int pr, Integer l, Integer r){
-		    nitID = id;
-		    parentID = pr;
-		    lft = l;
-		    rgt = r;
-		  }
 
-	public ENT clone(){
+
+	public ENT<?> clone(){
 		return this.clone();
 	}
 	/* (non-Javadoc)
@@ -207,7 +199,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			else sql = ParseUtil.parseQuery(fPath, settings);
 			stat = con.createStatement();
 			ResultSet rs = SQLUtil.execSQL(sql,stat);
-			nitID = (Integer)nitIDObj;
+			nitID = (Long)nitIDObj;
 			setFieldVals(rs);
 			//twiddleWebuserIterator();
 		}catch(Exception ex){
