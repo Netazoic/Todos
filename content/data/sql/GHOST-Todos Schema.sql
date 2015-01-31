@@ -444,13 +444,130 @@ END;
 ;
 
 
+-- Trigger: dot_create_post_tag_do_do
+CREATE TRIGGER dot_create_post_tag_do_do
+       AFTER INSERT ON posts_tags
+BEGIN
+    INSERT INTO do_do ( 
+        doID,
+        doRelID,
+        drCode,
+        ddSort 
+    ) 
+    SELECT d1.doID AS doID,
+           d2.doID AS doRelID,
+           'CHILD' AS drCode,
+           coalesce( ( 
+               SELECT max( dd.ddSort ) + 1
+                 FROM do_do
+                WHERE dd.doRelID = d2.doID 
+           ) 
+           , 1 ) AS ddSort
+      FROM do d1, 
+           do d2, 
+           do_do dd
+     WHERE d1.doRecUUID =( 
+               SELECT doRecUUID
+                 FROM DO
+                WHERE doRecID = new.post_ID 
+                      AND
+                      dcCode = 'DO' 
+           ) 
+           
+           AND
+           d2.doRecUUID =( 
+               SELECT doRecUUID
+                 FROM do
+                WHERE doRecID = new.tag_id 
+                      AND
+                      dcCode = 'TAG' 
+           );
+END;
+;
+
+
+-- Trigger: dot_delete_post_tag
+CREATE TRIGGER dot_delete_post_tag
+       AFTER DELETE ON posts_tags
+BEGIN
+    DELETE
+      FROM do_do
+     WHERE doID =( 
+               SELECT doID
+                 FROM do
+                WHERE doRecID = old.post_id 
+                      AND
+                      dcCode = 'DO' 
+           ) 
+           
+           AND
+           doRelID =( 
+               SELECT doID
+                 FROM do
+                WHERE doRecID = old.tag_id 
+                      AND
+                      dcCode = 'TAG' 
+           );
+END;
+;
+
+
+-- Trigger: dot_delete_tag
+CREATE TRIGGER dot_delete_tag
+       AFTER DELETE ON tags
+BEGIN
+    DELETE
+      FROM do_do
+     WHERE doRelID =( 
+               SELECT doID
+                 FROM do
+                WHERE doRecUUID = old.uuid 
+                      AND
+                      dcCode = 'TAG' 
+           ) 
+           
+           AND
+           drCode = 'CHILD';
+
+    DELETE
+      FROM do
+     WHERE doRecUUID = old.uuid 
+           AND
+           dcCode = 'TAG';
+END;
+;
+
+
+-- Trigger: dot_create_tag_do
+CREATE TRIGGER dot_create_tag_do
+       AFTER INSERT ON tags
+BEGIN
+    INSERT INTO do ( 
+        doid,
+        dorecid,
+        dorecuuid,
+        dccode 
+    ) 
+    SELECT max( doID ) + 1 AS doid,
+           new.id,
+           new.uuid,
+           'TAG'
+      FROM do
+     WHERE doID < 10000;
+END;
+;
+
+
 -- View: dv_relct
 CREATE VIEW dv_relct AS
        SELECT do.doid,
               count( do.doid ) AS relct
          FROM do
-              JOIN do_do
+              JOIN do_do dd
                    USING ( doid ) 
+              JOIN do d2
+                ON ( dd.doRelID = d2.doID ) 
+        WHERE d2.dcCode != 'TAG'
         GROUP BY do.doid;
 ;
 
