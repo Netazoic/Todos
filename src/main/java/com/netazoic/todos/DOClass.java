@@ -1,6 +1,7 @@
 package com.netazoic.todos;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.netazoic.ent.ENT;
@@ -39,14 +40,14 @@ public class DOClass extends ENT<DOClass>{
 	
 	@Override
 	public void initENT() {
-		this.nitIDField = "dcCode";
-		this.nitTable = "do_class";
-		this.nitName = "DO Class";
+		this.nit.fld_nitID = "dcCode";
+		this.nit.nitTable = "do_class";
+		this.nit.nitName = "DO Class";
 		
 	}
 
 	@Override
-	public Long createRecord(Map<String, Object> paramMap, Connection con)
+	public Long createRecord(HashMap<String, Object> paramMap, Connection con)
 			throws ENTException {
 		// TODO Auto-generated method stub
 		return null;
@@ -55,6 +56,24 @@ public class DOClass extends ENT<DOClass>{
 	@Override
 	public void deleteRecord(String webuserID, String comments)
 			throws ENTException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void retrieveRecord(HashMap<String, Object> paramMap)
+			throws ENTException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void updateRecord(HashMap<String, Object> paramMap)
+			throws ENTException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void initNIT() throws ENTException {
 		// TODO Auto-generated method stub
 		
 	}

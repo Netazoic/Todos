@@ -59,8 +59,8 @@ public class DO extends ENT<DO> {
 		}
 	}
 
-	DO(){init();}
-	DO(Connection con){super.init(con);}
+	DO() throws ENTException{init();}
+	DO(Connection con) throws ENTException{super.init(con);}
 	
 	DO(Long id,Connection con) throws ENTException{
 		super.init(id,con);
@@ -68,23 +68,23 @@ public class DO extends ENT<DO> {
 
 	@Override
 	public void initENT() {
-		this.nitIDField = "doID";
-		this.nitTable = "do";
-		this.nitName = "DO";
+		this.nit.fld_nitID = "doID";
+		this.nit.nitTable = "do";
+		this.nit.nitName = "DO";
 	}
 
 
 
 
 	@Override
-	public Long createRecord(Map<String, Object> paramMap, Connection con)
+	public Long createRecord(HashMap<String, Object> paramMap, Connection con)
 			throws ENTException {
 		Long id = null;
 		try{
 			setFieldVals(paramMap);
 			loadParamMap(paramMap);
-			id = SQLUtil.getNextID(this.nitIDField, this.nitTable, con);
-			paramMap.put(nitIDField, id);
+			id = SQLUtil.getNextID(nit.fld_nitID, nit.nitTable, con);
+			paramMap.put(nit.fld_nitID, id);
 			String q = parseUtil.parseQueryFile(paramMap,DO_T.sql_Create_DO.tPath);
 			SQLUtil.execSQL(q, con);
 			if(!con.getAutoCommit()) con.commit();
@@ -116,6 +116,12 @@ public class DO extends ENT<DO> {
 		// TODO Auto-generated method stub
 		
 	}
+	public void updateRecord(HashMap<String, Object> paramMap)
+			throws ENTException {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 
 }

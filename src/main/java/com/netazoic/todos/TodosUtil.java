@@ -26,7 +26,7 @@ public class TodosUtil{
 		Object doRecID;
 		UUID doRecUUID;
 		String table,parentID;
-		Map<String,Object> paramMap = new HashMap<String,Object>();
+		HashMap<String,Object> paramMap = new HashMap<String,Object>();
 		paramMap.put(DO_Param.doParentID.name(), parentDO.doID);
 		paramMap.put(DO_Param.dcCode.name(), dc.dcCode);
 		paramMap.put(DC_Param.dcTable.name(),dc.dcTable);

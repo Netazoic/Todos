@@ -105,8 +105,8 @@ public class Todos extends ServENT{
 		
 	
 	}
-	private Map<String, Object> getRequestMap(HttpServletRequest request) {
-		Map<String,Object> m = new HashMap<String,Object>();
+	private HashMap<String, Object> getRequestMap(HttpServletRequest request) {
+		HashMap<String,Object> m = new HashMap<String,Object>();
 		Enumeration<String> rkeys = request.getAttributeNames();
 		String k;
 		while (rkeys.hasMoreElements()){
@@ -135,7 +135,7 @@ public class Todos extends ServENT{
 				HttpServletResponse response, Connection con, HttpSession session)
 				throws IOException, Exception {
 			ENT<DO> dd = new DO(con);
-			Map<String,Object> paramMap = getRequestMap(request);
+			HashMap<String,Object> paramMap = getRequestMap(request);
 			Long id = dd.createRecord(paramMap, con);
 			String msg = "Created new DO with id " + id;
 			ajaxResponse(msg,response);

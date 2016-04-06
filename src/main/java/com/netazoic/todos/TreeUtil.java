@@ -143,13 +143,13 @@ public class TreeUtil {
 		try{
 			int i = 0;
 			while(rs.next()){
-				nitID = rs.getLong(dd.nitIDField);
+				nitID = rs.getLong(dd.nit.fld_nitID);
 				parentID = rs.getLong(2);
 				lft = rs.getInt(3);
 				rgt = rs.getInt(4);
 				nitTitle = rs.getString(5);
 				pg = (DO)dd.clone();
-				pg.nitID = nitID;
+				pg.nit.nitID = nitID;
 				//pg.retrieveRecord();
 				pg.doParentID = parentID;
 				pg.lft = lft;
@@ -206,16 +206,16 @@ public class TreeUtil {
 		try{
 			entStack = getEntStack(ent,rs);
 			for(DO pg : entStack){
-				pageID = pg.nitID;
+				pageID = pg.nit.nitID;
 				parentID = pg.doParentID;
-				fixTitle = escapeHtml4(pg.nitTitle);
+				fixTitle = escapeHtml4(pg.nit.nitTitle);
 				pgCt++;
 
 				//Home node
 				if(pgCt ==1){
 					//this is the home node
 					//liID = "home";
-					liID = pg.nitID+"";
+					liID = pg.nit.nitID+"";
 					liClass = " home pageNode ";
 					home = pg;
 					//lvl++;
@@ -230,7 +230,7 @@ public class TreeUtil {
 				}
 				//Sub-node
 				try{parent1 = parentMap.get(lvl);}catch(Exception ex){parent1 = (long) -1;}
-				liID = pg.nitID+"";
+				liID = pg.nit.nitID+"";
 				liClass = " pageNode ";
 				if(pg.doParentID == parent1){
 					//at same level, no change
@@ -285,10 +285,10 @@ public class TreeUtil {
 		String li = "";
 		li += "<LI id=" + liID +" class='" + liClass +"'" +
 				" lvl=" + lvl +">";
-		li += " <a name='"+pg.nitID+"' " +
-				"id='" + pg.nitID + "'" +
+		li += " <a name='"+pg.nit.nitID+"' " +
+				"id='" + pg.nit.nitID + "'" +
 				"class='" + pgClass + "'" +
-				"href='javascript:goVisEditor(\""+pg.nitID+"\" )'>";
+				"href='javascript:goVisEditor(\""+pg.nit.nitID+"\" )'>";
 		li += pgTitle;
 		li += "</a>\n";
 		//don't close the LI here . . . wait to see if there are children
@@ -352,8 +352,8 @@ public class TreeUtil {
 
 	public static <T,E> void updateTreeIndexes(DO dd,TreeEl<T>[] treeStack, Connection con) throws DOException{
 		//Set the left and right index values in the db for DOs referenced in  treeStack
-		String sql = "UPDATE " + dd.nitTable +" SET lft = ?, rgt = ? " +
-				" WHERE " + dd.nitIDField + "= ?";
+		String sql = "UPDATE " + dd.nit.nitTable +" SET lft = ?, rgt = ? " +
+				" WHERE " + dd.nit.nitIDField + "= ?";
 		PreparedStatement ps = null;
 		try {
 			ps = con.prepareStatement(sql);
