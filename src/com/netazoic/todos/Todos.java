@@ -124,7 +124,7 @@ public class Todos extends ServENT{
 				throws IOException, Exception {
 			String tPath = TODOS_T.Admin_Home.tPath;
 			Map<String,Object> map = new HashMap<String,Object>();
-			ParseUtil.parseOutput(map, tPath, response.getWriter());
+			parseOutput(map, tPath, response.getWriter());
 		}	
 		
 	}

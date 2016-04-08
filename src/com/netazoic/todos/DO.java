@@ -45,7 +45,7 @@ public class DO extends ENT<DO> {
 		doID,doRecID,dcCode,doRecUUID, doParentID, doID_1, doID_2
 	}
 
-	public  enum DO_T{
+	public  enum DO_TPL{
 		sql_Create_DO("/Todos/DO/sql/CreateDO.sql","Create a DO"), 
 		sql_Create_DO_Parent("/Todos/DO/sql/CreateDOParent.sql","Create a parent pointer");
 	
@@ -53,7 +53,7 @@ public class DO extends ENT<DO> {
 	
 		String tPath;
 		String desc;
-		DO_T(String t, String d){
+		DO_TPL(String t, String d){
 			tPath = t;
 			desc = d;
 		}
@@ -85,7 +85,7 @@ public class DO extends ENT<DO> {
 			loadParamMap(paramMap);
 			id = SQLUtil.getNextID(nit.fld_nitID, nit.nitTable, con);
 			paramMap.put(nit.fld_nitID, id);
-			String q = parseUtil.parseQueryFile(paramMap,DO_T.sql_Create_DO.tPath);
+			String q = parseUtil.parseQueryFile(paramMap,DO_TPL.sql_Create_DO.tPath);
 			SQLUtil.execSQL(q, con);
 			if(!con.getAutoCommit()) con.commit();
 			//Create parent pointer if specified
@@ -105,7 +105,7 @@ public class DO extends ENT<DO> {
 		map.put(DO_Param.doID_1.name(), doParentID);
 		map.put(DO_Param.doID_2.name(), doID);
 		map.put(DO_Param.dcCode.name(), DO_Class.PARENT);
-		String q = parseUtil.parseQueryFile(map, DO_T.sql_Create_DO_Parent.tPath);
+		String q = parseUtil.parseQueryFile(map, DO_TPL.sql_Create_DO_Parent.tPath);
 		SQLUtil.execSQL(q, con);
 	}
 
