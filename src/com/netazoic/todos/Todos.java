@@ -7,18 +7,17 @@ import java.sql.Statement;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.netazoic.ent.ENT;
 import com.netazoic.ent.NetRoute;
 import com.netazoic.ent.ServENT;
 import com.netazoic.todos.DO.DO_Param;
 import com.netazoic.todos.DO.DO_Route;
-import com.netazoic.util.ParseUtil;
 import com.netazoic.util.SQLUtil;
 
 /*
@@ -124,7 +123,7 @@ public class Todos extends ServENT{
 				throws IOException, Exception {
 			String tPath = TODOS_T.Admin_Home.tPath;
 			Map<String,Object> map = new HashMap<String,Object>();
-			parseOutput(map, tPath, response.getWriter());
+			parseOutput(map, tPath, response);
 		}	
 		
 	}
@@ -134,11 +133,14 @@ public class Todos extends ServENT{
 		public void routeAction(HttpServletRequest request,
 				HttpServletResponse response, Connection con, HttpSession session)
 				throws IOException, Exception {
-			ENT<DO> dd = new DO(con);
+			DO dd = new DO(con);
 			HashMap<String,Object> paramMap = getRequestMap(request);
+			dd.doTitle= (String) request.getAttribute(DO_Param.doTitle.name());
+			dd.doRecUUID = (UUID) request.getAttribute(DO_Param.uuID.name());
+			dd.dcCode = (String) request.getAttribute(DO_Param.dcCode.name());
 			Long id = dd.createRecord(paramMap, con);
 			String msg = "Created new DO with id " + id;
-			ajaxResponse(msg,response);
+			ajaxResponse(dd.getJSON(),response);
 		}	
 		
 	}

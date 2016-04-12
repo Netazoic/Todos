@@ -11,5 +11,5 @@
 
 	WHERE 1=1
 	AND dd.drCode = 'PARENT'
-	AND dd.doID = {{doID}}
+	AND dd.doID = ${doID}
 ORDER by ddLeft,ddRight desc

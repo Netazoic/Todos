@@ -1,6 +1,7 @@
 package com.netazoic.todos;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -16,11 +17,14 @@ public class DO extends ENT<DO> {
 	public Long doRecID;
 	public UUID doRecUUID;
 	public Long doParentID;
+	public String doTitle;
+	
+	private PreparedStatement psCreateDO = null;
 	
 	public Integer lft,rgt;
 
 	public enum DO_Class{
-		PARENT,CHILD,SELF
+		EO,DO,TAG,PARENT,CHILD,SELF
 	}
 	public enum DO_Route{
 		cdo("cdo","Create DO"),
@@ -42,10 +46,11 @@ public class DO extends ENT<DO> {
 	}
 	
 	public enum DO_Param{
-		doID,doRecID,dcCode,doRecUUID, doParentID, doID_1, doID_2
+		doID,doRecID,dcCode,doRecUUID, doParentID, doID_1, doID_2, doTitle, uuID
 	}
 
 	public  enum DO_TPL{
+		sql_ps_Create_DO("/Todos/DO/sql/psCreateDO.sql","Create a DO"), 
 		sql_Create_DO("/Todos/DO/sql/CreateDO.sql","Create a DO"), 
 		sql_Create_DO_Parent("/Todos/DO/sql/CreateDOParent.sql","Create a parent pointer");
 	
@@ -67,10 +72,11 @@ public class DO extends ENT<DO> {
 	}
 
 	@Override
-	public void initENT() {
-		this.nit.fld_nitID = "doID";
-		this.nit.nitTable = "do";
-		this.nit.nitName = "DO";
+	public void initENT() throws ENTException {
+		nit.ENTITY_NAME = "DO";
+		nit.FLD_NIT_ID = "doID";
+		nit.NIT_TABLE = "public.Do";
+		super.initENT();
 	}
 
 
@@ -83,14 +89,21 @@ public class DO extends ENT<DO> {
 		try{
 			setFieldVals(paramMap);
 			loadParamMap(paramMap);
-			id = SQLUtil.getNextID(nit.fld_nitID, nit.nitTable, con);
-			paramMap.put(nit.fld_nitID, id);
-			String q = parseUtil.parseQueryFile(paramMap,DO_TPL.sql_Create_DO.tPath);
-			SQLUtil.execSQL(q, con);
+			//id = SQLUtil.getNextID(nit.fld_nitID, nit.nitTable, con);
+			//paramMap.put(nit.fld_nitID, id);
+			if(psCreateDO ==null){
+				String q = parseUtil.parseQueryFile(paramMap,DO_TPL.sql_ps_Create_DO.tPath);
+				psCreateDO = con.prepareStatement(q);
+			}
+			psCreateDO.setString(4, doTitle);
+			psCreateDO.setString(1, DO_Class.DO.name());
+			//TODO do we need a doRecID?
+			psCreateDO.setInt(2, 0);
+			psCreateDO.setString(3, this.doRecUUID+"");
+			doID = SQLUtil.execSQLLong(psCreateDO, con);
 			if(!con.getAutoCommit()) con.commit();
 			//Create parent pointer if specified
 			if(this.doParentID != null){
-				this.doID = id;
 				createParent(doParentID,con);
 			}
 
