@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.netazoic.ent.ENT;
-import com.netazoic.ent.NetRoute;
+import com.netazoic.ent.RouteAction;
 import com.netazoic.ent.ServENT;
 import com.netazoic.todos.DO.DO_Param;
 import com.netazoic.todos.DO.DO_Route;
@@ -52,14 +52,14 @@ public class Todos extends ServENT{
 
 
 
-	private NetRoute lsdoHdlr = new LSHandler();
-	private NetRoute lndoHdlr = new LNHandler();
-	private NetRoute cdoHdlr = new CreateDOHandler();
-	private NetRoute rdoHdlr = new RetrieveDOHandler();
-	private NetRoute udoHdlr = new UpdateDOHandler();
-	private NetRoute ddoHdlr = new DeleteDOHandler();
-	private NetRoute idxHdlr = new IndexTableHandler();
-	private NetRoute adminHome = new AdminHome();
+	private RouteAction lsdoHdlr = new LSHandler();
+	private RouteAction lndoHdlr = new LNHandler();
+	private RouteAction cdoHdlr = new CreateDOHandler();
+	private RouteAction rdoHdlr = new RetrieveDOHandler();
+	private RouteAction udoHdlr = new UpdateDOHandler();
+	private RouteAction ddoHdlr = new DeleteDOHandler();
+	private RouteAction idxHdlr = new IndexTableHandler();
+	private RouteAction adminHome = new AdminHome();
 	public enum TODOS_Route{
 		admin("admin","Admin Home"),
 		idxTable("idxTable","Index a table"),
@@ -105,7 +105,7 @@ public class Todos extends ServENT{
 		
 	
 	}
-	private HashMap<String, Object> getRequestMap(HttpServletRequest request) {
+	public HashMap<String, Object> getRequestMap(HttpServletRequest request) {
 		HashMap<String,Object> m = new HashMap<String,Object>();
 		Enumeration<String> rkeys = request.getAttributeNames();
 		String k;
